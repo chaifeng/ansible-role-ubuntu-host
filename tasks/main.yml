@@ -12,7 +12,7 @@
     - ansible_dependencies
 
 - name: 'Ensure useful packages'
-  apt: name=tree,pv,vim,git,zsh,zsh-syntax-highlighting,dnsutils,python-software-properties,apt-file,ntp
+  apt: name=tree,pv,vim,git,zsh,dnsutils,python-software-properties,apt-file,ntp
 
 - name: Ensure Byobu
   apt: name=byobu
