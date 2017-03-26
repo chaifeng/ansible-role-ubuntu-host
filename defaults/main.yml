@@ -1,0 +1,13 @@
+hostname: localhost
+domain: local
+
+locales:
+  - zh_CN.UTF-8
+  - en_US.UTF-8
+
+ssh:
+  allow_password: 'no'
+
+byobu_disable_autolaunch: True
+
+users: []

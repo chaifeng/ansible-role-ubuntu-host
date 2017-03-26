@@ -1,0 +1,110 @@
+- block:
+    - name: Ensure python, pip and packages releated to ansible
+      apt: name=python-pip,libssl-dev,dbus
+
+    - name: Ensure ansible and dependencies
+      pip: name="{{ item }}" state=latest
+      with_items:
+        - pip
+        - python-apt
+        - ansible
+  tags:
+    - ansible_dependencies
+
+- name: 'Ensure useful packages'
+  apt: name=tree,pv,vim,git,zsh,zsh-syntax-highlighting,dnsutils,python-software-properties,apt-file,ntp
+
+- name: Ensure Byobu
+  apt: name=byobu
+  notify: Set byobu launch or not
+
+- name: 'Hostname'
+  hostname: name="{{ hostname }}.{{ domain }}"
+  tags:
+    - hostname
+
+- name: 'Hosts file'
+  lineinfile: dest=/etc/hosts regexp='^127\.0\.1\.1\t.+' line='127.0.1.1\t{{ hostname }}.{{ domain }} {{ hostname }}'
+
+- name: Ensure groups
+  group: name="{{ item.name }}" gid="{{ item.gid }}"
+  with_items: "{{ ubuntu_groups | default([]) }}"
+
+- name: 'Ensure groups exist'
+  group: name="{{ item.group }}"
+  when: item.group is defined and item.group is string
+  with_items: "{{ users }}"
+
+- name: 'Ensure groups with certain gid'
+  group: name="{{ item.group.name }}" gid="{{ item.group.gid | default(omit) }}"
+  when: item.group is defined and item.group is not string
+  with_items: "{{ users }}"
+
+- name: Ensure users
+  user: name="{{ item.name }}" uid="{{ item.uid | default(omit) }}" home="{{ item.home | default(omit) }}" password="{{ item.password | default(omit) }}" group="{{ item.group | default(omit) }}" append=yes groups="{{ item.groups | default(omit) }}" createhome="yes" update_password=always shell="/bin/{{ item.shell | default('bash') }}"
+  with_items: "{{ users }}"
+
+- name: Ensure user byobu config directory
+  file: path="{{ '~' + item.name | expanduser }}/.byobu" state=directory owner="{{ item.name }}" group="{{ item.group }}"
+  with_items: "{{ users }}"
+  tags:
+    - byobu
+
+- name: Disable byobu for user
+  copy: force=no content="" dest="{{ '~' + item.name | expanduser }}/.byobu/disable-autolaunch" owner="{{ item.name }}" group="{{ item.group }}"
+  when: item.byobu_disable_autolaunch is defined and item.byobu_disable_autolaunch
+  with_items: "{{ users }}"
+  tags:
+    - byobu
+
+- name: Ensure ssh folder for users
+  file: >
+    path="{{ '~' + item.name | expanduser }}/.ssh" state=directory
+    owner="{{ item.name }}" group="{{ item.group }}" mode=go-rwx
+  when: item.ssh_key is defined
+  with_items: "{{ users }}"
+
+- name: Ensure ssh key for users
+  copy: >
+    content="{{ item.ssh_key }}" dest="{{ '~' + item.name | expanduser }}/.ssh/id_rsa"
+    owner="{{ item.name }}" group="{{ item.group }}" mode=go-rwx
+  when: item.ssh_key is defined
+  with_items: "{{ users }}"
+
+- name: 'Adding public key for users'
+  authorized_key: user="{{ item.0.name }}" key="{{ item.1 }}" exclusive="{{ item.0.sudo | default(False) }}"
+  with_subelements:
+    - "{{ users }}"
+    - authorized_keys
+  tags:
+    - ssh
+    - authorized_keys
+
+- name: 'Adding users to sudo list'
+  copy: dest="/etc/sudoers.d/{{ item.name }}" owner=root group=root mode="go-rwx" content="{{ item.name }} ALL=(ALL) ALL"
+  when: item.sudo | default(False)
+  with_items: "{{ users }}"
+
+- name: 'Allow proxy settings while using sudo'
+  copy:
+    content: |
+      Defaults env_keep = "http_proxy https_proxy ftp_proxy all_proxy no_proxy"
+    dest: /etc/sudoers.d/00proxy
+    mode: a-wx,o-r
+
+- name: 'Secure SSHD server'
+  template: src=sshd_config.j2 dest=/etc/ssh/sshd_config owner=root group=root mode=644 backup=yes validate="sshd -t -f %s"
+  notify: Restart SSH
+  tags:
+    - ssh
+
+- name: 'Locales'
+  locale_gen: name={{ item }}
+  with_items: "{{ locales }}"
+
+- name: 'Ensure profiles'
+  copy: dest="/etc/profile.d/{{ item.filename }}" content="{{ item.content }}"
+  with_items:
+    - filename: editor.sh
+      content: |
+        export EDITOR=vim
