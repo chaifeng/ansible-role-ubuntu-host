@@ -85,13 +85,6 @@
   when: item.sudo | default(False)
   with_items: "{{ users }}"
 
-- name: 'Allow proxy settings while using sudo'
-  copy:
-    content: |
-      Defaults env_keep = "http_proxy https_proxy ftp_proxy all_proxy no_proxy"
-    dest: /etc/sudoers.d/00proxy
-    mode: a-wx,o-r
-
 - name: 'Secure SSHD server'
   template: src=sshd_config.j2 dest=/etc/ssh/sshd_config owner=root group=root mode=644 backup=yes validate="sshd -t -f %s"
   notify: Restart SSH
