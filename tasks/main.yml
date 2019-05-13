@@ -31,7 +31,7 @@
   with_items: "{{ ubuntu_groups | default([]) }}"
 
 - name: 'Ensure groups exist'
-  group: name="{{ item.group }}"
+  group: name="{{ item.group }}" gid="{{ item.gid | default(omit) }}"
   when: item.group is defined and item.group is string
   with_items: "{{ users }}"
 
