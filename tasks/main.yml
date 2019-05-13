@@ -7,7 +7,7 @@
       with_items:
         - pip
         - python-apt
-        - ansible==2.4.3.0
+        - ansible==2.7.10
   tags:
     - ansible_dependencies
 
