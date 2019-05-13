@@ -8,6 +8,4 @@ locales:
 ssh:
   allow_password: 'no'
 
-byobu_disable_autolaunch: True
-
 users: []

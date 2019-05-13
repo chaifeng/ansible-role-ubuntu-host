@@ -1,8 +1,3 @@
-- name: Set byobu launch or not
-  shell: |
-    echo "byobu   byobu/launch-by-default boolean {{ byobu_disable_autolaunch | ternary('false', 'true') }}" | debconf-set-selections
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure byobu
-
 - name: 'Restart SSH'
   service: name=ssh state=restarted
 

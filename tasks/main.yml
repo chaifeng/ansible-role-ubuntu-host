@@ -14,10 +14,6 @@
 - name: 'Ensure useful packages'
   apt: name=tree,pv,vim,git,zsh,dnsutils,python-software-properties,apt-file,ntp
 
-- name: Ensure Byobu
-  apt: name=byobu
-  notify: Set byobu launch or not
-
 - name: 'Hostname'
   hostname: name="{{ hostname }}.{{ domain }}"
   tags:
@@ -43,19 +39,6 @@
 - name: Ensure users
   user: name="{{ item.name }}" uid="{{ item.uid | default(omit) }}" home="{{ item.home | default(omit) }}" password="{{ item.password | default(omit) }}" group="{{ item.group | default(omit) }}" append=yes groups="{{ item.groups | default(omit) }}" createhome="yes" update_password=always shell="/bin/{{ item.shell | default('bash') }}"
   with_items: "{{ users }}"
-
-- name: Ensure user byobu config directory
-  file: path="{{ '~' + item.name | expanduser }}/.byobu" state=directory owner="{{ item.name }}" group="{{ item.group }}"
-  with_items: "{{ users }}"
-  tags:
-    - byobu
-
-- name: Disable byobu for user
-  copy: force=no content="" dest="{{ '~' + item.name | expanduser }}/.byobu/disable-autolaunch" owner="{{ item.name }}" group="{{ item.group }}"
-  when: item.byobu_disable_autolaunch is defined and item.byobu_disable_autolaunch
-  with_items: "{{ users }}"
-  tags:
-    - byobu
 
 - name: Ensure ssh folder for users
   file: >
