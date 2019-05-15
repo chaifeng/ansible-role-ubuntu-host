@@ -68,7 +68,16 @@
   with_items: "{{ users }}"
 
 - name: 'Secure SSHD server'
-  template: src=sshd_config.j2 dest=/etc/ssh/sshd_config owner=root group=root mode=644 backup=yes validate="sshd -t -f %s"
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    backup: yes
+    validate: "sshd -t -f %s"
+    regexp: "^[#\\s]*{{item.split()|first}}\\s+.+"
+    line: "{{item}}"
+  with_items:
+    - PasswordAuthentication no
+    - PermitRootLogin no
+    - UseDNS no
   notify: Restart SSH
   tags:
     - ssh
