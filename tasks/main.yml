@@ -3,11 +3,12 @@
       apt: name=python-pip,libssl-dev,dbus
 
     - name: Ensure ansible and dependencies
-      pip: name="{{ item }}" state=latest
-      with_items:
-        - pip
-        - python-apt
-        - ansible==2.7.10
+      pip:
+        state: latest
+        name:
+          - pip
+          - python-apt
+          - ansible==2.7.10
   tags:
     - ansible_dependencies
 
