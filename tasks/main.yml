@@ -1,14 +1,13 @@
 - block:
     - name: Ensure python, pip and packages releated to ansible
-      apt: name=python-pip,libssl-dev,dbus
+      apt: name=python3-pip,libssl-dev,dbus
 
     - name: Ensure ansible and dependencies
       pip:
-        state: latest
         name:
           - pip
           - python-apt
-          - ansible==2.7.10
+          - ansible==2.8.0
   tags:
     - ansible_dependencies
 
