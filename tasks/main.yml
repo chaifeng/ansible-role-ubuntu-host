@@ -76,7 +76,7 @@
     line: "{{item}}"
   with_items:
     - PasswordAuthentication no
-    - PermitRootLogin no
+    - PermitRootLogin prohibit-password
     - UseDNS no
   notify: Restart SSH
   tags:
