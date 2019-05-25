@@ -37,7 +37,7 @@
   with_items: "{{ users }}"
 
 - name: Ensure users
-  user: name="{{ item.name }}" uid="{{ item.uid | default(omit) }}" home="{{ item.home | default(omit) }}" password="{{ item.password | default(omit) }}" group="{{ item.group | default(omit) }}" append=yes groups="{{ item.groups | default(omit) }}" createhome="yes" update_password=always shell="/bin/{{ item.shell | default('bash') }}"
+  user: name="{{ item.name }}" uid="{{ item.uid | default(omit) }}" home="{{ item.home | default(omit) }}" password="{{ item.password | default(omit) }}" group="{{ item.group | default(omit) }}" append=yes groups="{{ item.groups | default(omit) }}" createhome="{{item.shell!='/bin/nologin'}}" update_password=always shell="{{ item.shell | default('bash') }}"
   with_items: "{{ users }}"
 
 - name: Ensure ssh folder for users
